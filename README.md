@@ -5,7 +5,7 @@ in benchmark. Compiled with `gcc` and `-O3` for my machine
 (`11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz`/`4 cores`/`64gb ram`).
 
 ```
-g++ main.cpp picobench.hpp -O3 -o eval_bench
+g++ -o eval_bench -O3 main.cpp
 ```
 Ran `10,000,000` iterations with 5 samples.
 ```
