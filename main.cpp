@@ -23,7 +23,7 @@ int interp_switch(unsigned char* code, int initval) {
 
     while (1) {
         switch (code[pc++]) {
-            case OP_HALT:
+            default:
                 return val;
             case OP_INC:
                 val++;
@@ -43,8 +43,6 @@ int interp_switch(unsigned char* code, int initval) {
             case OP_NEG:
                 val = -val;
                 break;
-            default:
-                return val;
         }
     }
 }
@@ -59,7 +57,6 @@ int interp_cgoto(unsigned char* code, int initval) {
     int val = initval;
 
     DISPATCH();
-    while (1) {
         do_halt:
             return val;
         do_inc:
@@ -80,7 +77,6 @@ int interp_cgoto(unsigned char* code, int initval) {
         do_neg:
             val = -val;
             DISPATCH();
-    }
     #undef DISPATCH
 }
 
