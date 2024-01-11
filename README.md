@@ -21,3 +21,10 @@ Which produced the following output:
         bench_interp_goto |10000000 |    86.406 |       8 |  0.568 |115733153.8
 ===============================================================================
 ```
+
+Not only is the goto version nearly equivalent in dispatch overhead to the
+computed goto version, the local switch statements get de-duplicated by
+the optimizer! I assume it's triggered by common subexpression elimination.
+
+Perhaps this is an alternative strategy for writing interpreters
+in languages without tail-call optimization and computed goto.
