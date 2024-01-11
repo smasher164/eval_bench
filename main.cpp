@@ -1,6 +1,6 @@
-#include <stdio.h>
-
-#define PICOBENCH_IMPLEMENT_WITH_MAIN
+#define PICOBENCH_IMPLEMENT
+#include <cstdio>
+#include <cstdlib>
 #include "picobench.hpp"
 
 // interp_switch and interp_cgoto are from Eli Bendersky's
@@ -120,7 +120,43 @@ int interp_goto(unsigned char* code, int initval) {
     #undef DISPATCH
 }
 
-unsigned char code[] = { OP_INC, OP_DEC, OP_MUL2, OP_DIV2, OP_ADD7, OP_NEG, OP_NEG, OP_DIV2, OP_DEC, OP_ADD7, OP_MUL2, OP_INC, OP_HALT };
+int interp_tailcall(unsigned char* code, int initval);
+
+int fn_halt(unsigned char* code, int val) {
+    return val;
+}
+
+int fn_inc(unsigned char* code, int val) {
+    return interp_tailcall(code, val+1);
+}
+
+int fn_dec(unsigned char* code, int val) {
+    return interp_tailcall(code, val-1);
+}
+
+int fn_mul2(unsigned char* code, int val) {
+    return interp_tailcall(code, val*2);
+}
+
+int fn_div2(unsigned char* code, int val) {
+    return interp_tailcall(code, val/2);
+}
+
+int fn_add7(unsigned char* code, int val) {
+    return interp_tailcall(code, val+7);
+}
+
+int fn_neg(unsigned char* code, int val) {
+    return interp_tailcall(code, -val);
+}
+
+int interp_tailcall(unsigned char* code, int initval) {
+    unsigned char* next = code+1;
+    return ((int (*)(unsigned char *, int))((char*)fn_halt+(*code)))(next, initval);
+}
+
+//unsigned char code[] = { OP_INC, OP_DEC, OP_MUL2, OP_DIV2, OP_ADD7, OP_NEG, OP_NEG, OP_DIV2, OP_DEC, OP_ADD7, OP_MUL2, OP_INC, OP_HALT };
+unsigned char* code;
 int initval = 42;
 
 static void bench_interp_switch(picobench::state& s) {
@@ -149,3 +185,31 @@ static void bench_interp_goto(picobench::state& s) {
 	s.set_result(sum);
 }
 PICOBENCH(bench_interp_goto);
+
+static void bench_interp_tailcall(picobench::state& s) {
+	int sum = 0;
+	for (auto _ : s) {
+		sum += interp_goto(code, initval);
+	}
+	s.set_result(sum);
+}
+PICOBENCH(bench_interp_tailcall);
+
+#define DSIZE 100000
+unsigned char* prepare_data() {
+  unsigned char* data = (unsigned char*)malloc(DSIZE);
+  FILE* f = fopen("zz.bin", "rb");
+  if (!f)
+    return 0;
+  if (fread(data, 1, DSIZE, f) != DSIZE)
+    return 0;
+  data[DSIZE - 1] = '\x00';
+  return data;
+}
+
+int main(int argc, const char* argv[]) {
+    code = prepare_data();
+    picobench::runner runner;
+    runner.parse_cmd_line(argc, argv);
+    return runner.run();
+}

@@ -1,30 +1,22 @@
 # goto eval benchmark
 
-Compare switch case, computed goto, and regular goto + local switch
+Compare switch case, computed goto, tail calls, and regular goto + local switch
 in benchmark. Compiled with `gcc` and `-O3` for my machine
 (`11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz`/`4 cores`/`64gb ram`).
 
 ```
 g++ -o eval_bench -O3 main.cpp
 ```
-Ran `10,000,000` iterations with 5 samples.
+Ran `100` iterations with 5 samples.
 ```
-./eval_bench --iters=100000000 --samples=5
-```
-Which produced the following output:
-```
+$ ./eval_bench --iters=100 --samples=5
 ===============================================================================
     Name (* = baseline)   |   Dim   |  Total ms |  ns/op  |Baseline| Ops/second
 ===============================================================================
-    bench_interp_switch * |10000000 |   152.058 |      15 |      - | 65764191.7
-       bench_interp_cgoto |10000000 |    74.976 |       7 |  0.493 |133375889.1
-        bench_interp_goto |10000000 |    87.024 |       8 |  0.572 |114910990.3
+    bench_interp_switch * |     100 |    58.306 |  583062 |      - |     1715.1
+       bench_interp_cgoto |     100 |    51.521 |  515209 |  0.884 |     1941.0
+        bench_interp_goto |     100 |    59.076 |  590755 |  1.013 |     1692.7
+    bench_interp_tailcall |     100 |    59.049 |  590487 |  1.013 |     1693.5
 ===============================================================================
-```
 
-Not only is the goto version nearly equivalent in dispatch overhead to the
-computed goto version, the local switch statements get de-duplicated by
-the optimizer! I assume it's triggered by common subexpression elimination.
-
-Perhaps this is an alternative strategy for writing interpreters
-in languages without tail-call optimization and computed goto.
+Not sure why the tailcall version isn't faster than baseline.
